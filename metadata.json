@@ -1,0 +1,6 @@
+{
+  "name": "ManhwaAI",
+  "description": "An interactive manhwa viewer featuring AI-processed panel scroll effects, custom ambient soundtracks, onomatopoeia sound effect animations, and cinematic responsive motion effects.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
