@@ -142,20 +142,21 @@ fun WebtoonReaderScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
-                    Column {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                         Text(
                             text = readingManhwa.manhwa.title,
-                            color = Color.White,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold
+                            color = Color.Black,
+                            fontSize = 18.sp,
+                            fontFamily = FontFamily.Cursive,
+                            fontWeight = FontWeight.Black
                         )
                         Text(
-                            text = "Aesthetic Multi-Sensory Mode Active • ${readingManhwa.manhwa.genre}",
-                            color = Color(0xFF2575FC),
-                            fontSize = 11.sp,
-                            fontFamily = FontFamily.Monospace
+                            text = "Interactive Comic Sensory Scroller • ${readingManhwa.manhwa.genre}",
+                            color = Color.DarkGray,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 },
@@ -164,7 +165,7 @@ fun WebtoonReaderScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back to Library",
-                            tint = Color.White
+                            tint = Color.Black
                         )
                     }
                 },
@@ -173,13 +174,20 @@ fun WebtoonReaderScreen(
                         Icon(
                             imageVector = if (playAudio) Icons.Default.Settings else Icons.Default.Refresh,
                             contentDescription = "Toggle SFX Soundtrack",
-                            tint = if (playAudio) Color(0xFF2575FC) else Color.Gray
+                            tint = if (playAudio) Color(0xFFFF3366) else Color.Gray,
+                            modifier = Modifier
+                                .border(1.5.dp, Color.Black, RoundedCornerShape(8.dp))
+                                .background(if (playAudio) Color(0xFFFFEA79) else Color.White, RoundedCornerShape(8.dp))
+                                .padding(4.dp)
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF09090D),
-                    titleContentColor = Color.White
+                modifier = Modifier.drawBehind {
+                    drawLine(Color.Black, Offset(0f, size.height), Offset(size.width, size.height), strokeWidth = 3.dp.toPx())
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color(0xFFFFEA79),
+                    titleContentColor = Color.Black
                 )
             )
         },
@@ -189,7 +197,21 @@ fun WebtoonReaderScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(Color(0xFF0D0D11))
+                .background(Color(0xFFFFFDF0))
+                .drawBehind {
+                    val dotColor = Color(0x0C000000)
+                    val spacing = 28.dp.toPx()
+                    val radius = 1.5f.dp.toPx()
+                    var x = 0f
+                    while (x < size.width) {
+                        var y = 0f
+                        while (y < size.height) {
+                            drawCircle(dotColor, radius, Offset(x, y))
+                            y += spacing
+                        }
+                        x += spacing
+                    }
+                }
         ) {
             // LazyColumn to present beautiful panel cells
             LazyColumn(
@@ -197,54 +219,58 @@ fun WebtoonReaderScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 120.dp)
             ) {
-                // Intro banner
+                // Intro banner styled as a retro poster
                 item {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(24.dp)
                             .drawBehind {
-                                drawCircle(Color(0xFF2575FC).copy(alpha = 0.05f), radius = 250f, center = Offset(size.width * 0.8f, size.height * 0.5f))
+                                drawCircle(Color(0xFFFFEA79).copy(alpha = 0.4f), radius = 180f, center = Offset(size.width * 0.85f, size.height * 0.5f))
                             },
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Card(
-                            colors = CardDefaults.cardColors(containerColor = Color(0x1A2575FC)),
-                            shape = RoundedCornerShape(8.dp)
+                        Box(
+                            modifier = Modifier
+                                .background(Color(0xFFFFE57F), RoundedCornerShape(12.dp))
+                                .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
                             Text(
-                                "SCROLL TO EXPERIENCE AIR FLOWS & SOUNDS",
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                "⚡ SCROLL FOR PROCEDURAL MULTIMEDIA ⚡",
                                 fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF2575FC),
+                                fontWeight = FontWeight.Black,
+                                color = Color.Black,
                                 fontFamily = FontFamily.Monospace
                             )
                         }
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
                             text = readingManhwa.manhwa.title,
-                            color = Color.White,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.ExtraBold,
+                            color = Color.Black,
+                            fontSize = 28.sp,
+                            fontFamily = FontFamily.Cursive,
+                            fontWeight = FontWeight.Black,
                             textAlign = TextAlign.Center
                         )
                         Text(
-                            text = "Author: ${readingManhwa.manhwa.author}",
-                            color = Color.LightGray,
+                            text = "Universe Crafted by ${readingManhwa.manhwa.author}",
+                            color = Color(0xFF333333),
                             fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = readingManhwa.manhwa.description,
-                            color = Color.Gray,
+                            color = Color.DarkGray,
                             fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(horizontal = 16.dp)
                         )
                         Spacer(modifier = Modifier.height(24.dp))
-                        Divider(color = Color.White.copy(alpha = 0.05f))
+                        Box(modifier = Modifier.fillMaxWidth().height(2.dp).background(Color.Black.copy(alpha = 0.15f)))
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
@@ -337,19 +363,12 @@ fun WebtoonReaderScreen(
                                     scaleY = animatedScale
                                 }
                                 .border(
-                                    width = 1.dp,
-                                    color = if (isFocused) {
-                                        when (readingPanel.panel.mood.uppercase()) {
-                                            "ACTION" -> Color(0xFFFF5722)
-                                            "HORROR" -> Color(0xFF4CAF50)
-                                            "ROMANCE" -> Color(0xFFE91E63)
-                                            else -> Color(0xFF2196F3)
-                                        }
-                                    } else Color.White.copy(alpha = animatedBorderAlpha),
-                                    shape = RoundedCornerShape(12.dp)
+                                    width = 3.dp, // Thick solid comic outliner border list!
+                                    color = Color.Black,
+                                    shape = RoundedCornerShape(16.dp)
                                 ),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF13131A)),
-                            shape = RoundedCornerShape(12.dp)
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            shape = RoundedCornerShape(16.dp)
                         ) {
                             Box(
                                 modifier = Modifier
@@ -364,17 +383,14 @@ fun WebtoonReaderScreen(
                                     velocity = calculatedVelocity
                                 )
 
-                                // Overlay metadata markers
+                                // Overlay metadata markers (dialog text bubble footer)
                                 Box(
                                     modifier = Modifier
                                         .align(Alignment.BottomStart)
-                                        .background(
-                                            Brush.verticalGradient(
-                                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.85f))
-                                            )
-                                        )
                                         .fillMaxWidth()
-                                        .padding(16.dp)
+                                        .background(Color(0xFFFFFDE7)) // Beautiful dairy cream dialogue label
+                                        .border(width = 2.5.dp, color = Color.Black, shape = RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp))
+                                        .padding(12.dp)
                                 ) {
                                     Column {
                                         Row(
@@ -383,16 +399,17 @@ fun WebtoonReaderScreen(
                                         ) {
                                             Box(
                                                 modifier = Modifier
-                                                    .size(8.dp)
+                                                    .size(10.dp)
                                                     .background(
-                                                        color = if (isFocused) Color.Green else Color.Gray,
+                                                        color = if (isFocused) Color(0xFFFF4081) else Color.Gray,
                                                         shape = CircleShape
                                                     )
+                                                    .border(1.dp, Color.Black, CircleShape)
                                             )
                                             Text(
-                                                text = "PANEL ${index + 1} • ${readingPanel.panel.mood}",
-                                                color = Color.White.copy(alpha = 0.8f),
-                                                fontWeight = FontWeight.Bold,
+                                                text = "PANEL ${index + 1} ★ ${readingPanel.panel.mood}",
+                                                color = Color.Black,
+                                                fontWeight = FontWeight.Black,
                                                 fontSize = 11.sp,
                                                 fontFamily = FontFamily.Monospace
                                             )
@@ -400,8 +417,10 @@ fun WebtoonReaderScreen(
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text(
                                             text = readingPanel.panel.description,
-                                            color = Color.LightGray,
+                                            color = Color.Black,
                                             fontSize = 12.sp,
+                                            fontFamily = FontFamily.Cursive,
+                                            fontWeight = FontWeight.Black,
                                             lineHeight = 16.sp
                                         )
                                     }
@@ -428,18 +447,17 @@ fun WebtoonReaderScreen(
                                         Text(
                                             text = activeOnomatopoeiaText,
                                             color = when (readingPanel.panel.mood.uppercase()) {
-                                                "ACTION" -> Color(0xFFFFEB3B)
-                                                "HORROR" -> Color(0xFFFF9800)
-                                                "ROMANCE" -> Color(0xFFFF80AB)
-                                                else -> Color(0xFF00E5FF)
+                                                "ACTION" -> Color(0xFFFF2E93) // Barbie Pop Neon Pink
+                                                "HORROR" -> Color(0xFF00FF7F) // Toxic Neon Green
+                                                "ROMANCE" -> Color(0xFFFF9100) // Electric Tangerine
+                                                else -> Color(0xFF00E5FF) // Cyber Cyan
                                             },
-                                            fontSize = 28.sp,
+                                            fontSize = 34.sp,
                                             fontWeight = FontWeight.Black,
-                                            fontStyle = FontStyle.Italic,
-                                            fontFamily = FontFamily.SansSerif,
+                                            fontFamily = FontFamily.Cursive,
                                             modifier = Modifier
                                                 .align(
-                                                    Alignment.TopStart // offset layout calculations from percent
+                                                    Alignment.TopStart
                                                 )
                                                 .offset(
                                                     x = (activeOnomatopoeiaX * 220).dp,
@@ -453,8 +471,8 @@ fun WebtoonReaderScreen(
                                             style = TextStyle(
                                                 shadow = Shadow(
                                                     color = Color.Black,
-                                                    offset = Offset(3f, 3f),
-                                                    blurRadius = 4f
+                                                    offset = Offset(4f, 4f),
+                                                    blurRadius = 0f // signature sharp comic block shadow!
                                                 ),
                                                 textAlign = TextAlign.Center
                                             )
@@ -474,22 +492,30 @@ fun WebtoonReaderScreen(
                             .padding(vertical = 40.dp, horizontal = 24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Info,
-                            contentDescription = null,
-                            tint = Color(0xFF2575FC),
-                            modifier = Modifier.size(36.dp)
-                        )
+                        Box(
+                            modifier = Modifier
+                                .background(Color(0xFFFFEA79), CircleShape)
+                                .border(2.5.dp, Color.Black, CircleShape)
+                                .padding(12.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Star,
+                                contentDescription = null,
+                                tint = Color.Black,
+                                modifier = Modifier.size(36.dp)
+                            )
+                        }
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
                             text = "To Be Continued...",
-                            color = Color.White,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
+                            color = Color.Black,
+                            fontSize = 22.sp,
+                            fontFamily = FontFamily.Cursive,
+                            fontWeight = FontWeight.Black
                         )
                         Text(
                             text = "You've scrolled back to reality. The AI pipeline stands ready to enrich even more uploads.",
-                            color = Color.LightGray,
+                            color = Color.DarkGray,
                             fontSize = 12.sp,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 4.dp)
@@ -497,11 +523,12 @@ fun WebtoonReaderScreen(
                         Spacer(modifier = Modifier.height(20.dp))
                         Button(
                             onClick = onBack,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF13131A)),
-                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD54F)),
+                            shape = RoundedCornerShape(12.dp),
+                            border = BorderStroke(2.dp, Color.Black),
                             modifier = Modifier.testTag("reader_finish_button")
                         ) {
-                            Text("Back to Dashboard", color = Color.White)
+                            Text("Back to Dashboard", color = Color.Black, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Cursive)
                         }
                     }
                 }

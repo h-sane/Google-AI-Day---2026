@@ -16,6 +16,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.ui.DashboardScreen
@@ -36,7 +38,21 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color(0xFF09090D))
+                        .background(Color(0xFFFFFDF0))
+                        .drawBehind {
+                            val dotColor = Color(0x0F000000)
+                            val spacing = 24.dp.toPx()
+                            val radius = 2.dp.toPx()
+                            var x = 0f
+                            while (x < size.width) {
+                                var y = 0f
+                                while (y < size.height) {
+                                    drawCircle(dotColor, radius, Offset(x, y))
+                                    y += spacing
+                                }
+                                x += spacing
+                            }
+                        }
                 ) { innerPadding ->
                     val manhwas by viewModelByLazy.allManhwas.collectAsState()
                     val readingState by viewModelByLazy.readingManhwaState.collectAsState()
@@ -60,20 +76,20 @@ class MainActivity : ComponentActivity() {
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .background(Color(0xFF0D0D11)),
+                                        .background(Color(0xFFFFFDF0)),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    CircularProgressIndicator(color = Color(0xFF2575FC))
+                                    CircularProgressIndicator(color = Color(0xFFFF4081))
                                 }
                             }
                             is UiState.Error -> {
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .background(Color(0xFF0D0D11)),
+                                        .background(Color(0xFFFFFDF0)),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text(text = "Error: ${state.message}", color = Color.Red, modifier = Modifier.padding(16.dp))
+                                    Text(text = "Error: ${state.message}", color = Color(0xFFFF1744), modifier = Modifier.padding(16.dp))
                                 }
                             }
                             else -> {

@@ -1,5 +1,6 @@
 package com.example.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -7,12 +8,19 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
@@ -22,10 +30,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-/**
- * Interactive product requirements document (PRD) viewer.
- * Fulfills the user's specific request to "research about this and then create a full PRD...".
- */
 @Composable
 fun PrdViewerScreen(modifier: Modifier = Modifier) {
     val scrollState = rememberScrollState()
@@ -33,49 +37,55 @@ fun PrdViewerScreen(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF09090D))
+            .background(Color.Transparent)
             .verticalScroll(scrollState)
             .padding(16.dp)
             .testTag("prd_screen_container")
     ) {
-        // Glowing Header Banner
+        // Glowing Bubbly Banner Header
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(Color(0xFF6A11CB), Color(0xFF2575FC)),
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                )
+                .drawBehind {
+                    drawRoundRect(
+                        color = Color.Black,
+                        topLeft = Offset(8f, 8f),
+                        size = size,
+                        cornerRadius = CornerRadius(16.dp.toPx(), 16.dp.toPx())
+                    )
+                }
+                .background(Color(0xFFFFEA79), RoundedCornerShape(16.dp))
+                .border(3.dp, Color.Black, RoundedCornerShape(16.dp))
                 .padding(24.dp)
         ) {
             Column {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0x33FFFFFF)),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.padding(bottom = 8.dp)
+                Box(
+                    modifier = Modifier
+                        .background(Color.Black, RoundedCornerShape(8.dp))
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Text(
                         text = "RESEARCH & STRATEGY SPECIFICATION",
                         color = Color.White,
-                        fontSize = 10.sp,
+                        fontSize = 9.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         fontFamily = FontFamily.Monospace
                     )
                 }
+                Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = "ManhwaAI Product Requirements Document (PRD)",
-                    color = Color.White,
+                    color = Color.Black,
                     fontSize = 22.sp,
+                    fontFamily = FontFamily.Cursive,
                     fontWeight = FontWeight.Black,
                     lineHeight = 28.sp
                 )
                 Text(
-                    text = "A blueprint for the next-gen immersive mobile webtoon platforms powered by Generative AI and procedural multimedia engines.",
-                    color = Color.White.copy(alpha = 0.85f),
+                    text = "A blueprint for next-gen immersive mobile webtoon platforms powered by Generative AI and procedural multimedia scroll engines.",
+                    color = Color(0xFF222222),
                     fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }
@@ -85,10 +95,11 @@ fun PrdViewerScreen(modifier: Modifier = Modifier) {
 
         // Architectural Pillars
         Text(
-            text = "Core Product Pillars",
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-            fontSize = 18.sp,
+            text = "Core Product Pillars ⚡",
+            color = Color.Black,
+            fontWeight = FontWeight.Black,
+            fontFamily = FontFamily.Cursive,
+            fontSize = 20.sp,
             modifier = Modifier.padding(bottom = 12.dp)
         )
 
@@ -99,15 +110,15 @@ fun PrdViewerScreen(modifier: Modifier = Modifier) {
             PillarCard(
                 title = "AI Orchestration",
                 icon = Icons.Default.Star,
-                desc = "Gemini-3.5-Flash analyzes panel geometry, registers actions and emotions, and design soundscape mappings.",
-                accentColor = Color(0xFFD0BCFF),
+                desc = "Gemini multi-modal pipeline analyzes panel regions, registers actions/expressions, and tags sound markers.",
+                accentColor = Color(0xFFFF5252),
                 modifier = Modifier.weight(1f)
             )
             PillarCard(
                 title = "Adaptive Audio",
                 icon = Icons.Default.Settings,
-                desc = "Low-latency synthesized waves change note pitch and frequency sweep values based on scroll metrics.",
-                accentColor = Color(0xFFF06292),
+                desc = "Low-latency synthesized waves dynamically shift pitch and frequency based on scrolling metrics.",
+                accentColor = Color(0xFFFF4081),
                 modifier = Modifier.weight(1f)
             )
         }
@@ -121,15 +132,15 @@ fun PrdViewerScreen(modifier: Modifier = Modifier) {
             PillarCard(
                 title = "Kinematic FX",
                 icon = Icons.Default.Settings,
-                desc = "Active scroll indices trigger camera screen shakes, color-grades, custom onomatopoeia pops, and layout scales.",
-                accentColor = Color(0xFF4FC3F7),
+                desc = "Scroll indices trigger camera frame shakes, dynamic speedlines, minor/major chords, and speech pops.",
+                accentColor = Color(0xFF40C4FF),
                 modifier = Modifier.weight(1f)
             )
             PillarCard(
-                title = "Full Offline",
+                title = "Local Offlining",
                 icon = Icons.Default.Info,
-                desc = "Stitched in a local SQLite/Room scheme, minimizing network footprint and enabling robust reading access.",
-                accentColor = Color(0xFF81C784),
+                desc = "Synchronized via a local Room DB, minimizing network footprint while keeping readings smooth.",
+                accentColor = Color(0xFF69F0AE),
                 modifier = Modifier.weight(1f)
             )
         }
@@ -171,29 +182,38 @@ fun PrdViewerScreen(modifier: Modifier = Modifier) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .border(1.dp, Color(0xFF2575FC).copy(alpha = 0.5f), RoundedCornerShape(12.dp))
-                .background(Color(0xFF13131A))
+                .drawBehind {
+                    drawRoundRect(
+                        color = Color.Black,
+                        topLeft = Offset(6f, 6f),
+                        size = size,
+                        cornerRadius = CornerRadius(12.dp.toPx(), 12.dp.toPx())
+                    )
+                }
+                .background(Color(0xFFD1F2FF), RoundedCornerShape(12.dp))
+                .border(2.5.dp, Color.Black, RoundedCornerShape(12.dp))
                 .padding(16.dp)
         ) {
             Column {
                 Text(
-                    text = "FUTURE ROADMAP & SCALABILITY",
-                    color = Color(0xFF2575FC),
-                    fontWeight = FontWeight.Bold,
+                    text = "FUTURE ROADMAP & SCALABILITY ★",
+                    color = Color.Black,
+                    fontWeight = FontWeight.Black,
                     fontSize = 12.sp,
                     fontFamily = FontFamily.Monospace,
                     modifier = Modifier.padding(bottom = 6.dp)
                 )
                 Text(
                     text = "Integrating AI Text-To-Speech (TTS) for Dialogs",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
+                    color = Color.Black,
+                    fontWeight = FontWeight.Black,
+                    fontFamily = FontFamily.Cursive,
+                    fontSize = 16.sp,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Text(
                     text = "By referencing bounding boxes of speech bubbles and using Gemini's structured output, we blueprint the translation of dialog text into spatial 3D audio tracks. This will allow the characters to literally speak directly from their actual panel layout coordinate as they scroll past.",
-                    color = Color.LightGray,
+                    color = Color(0xFF222222),
                     fontSize = 12.sp,
                     lineHeight = 18.sp
                 )
@@ -212,36 +232,48 @@ fun PillarCard(
     accentColor: Color,
     modifier: Modifier = Modifier
 ) {
-    Card(
+    Box(
         modifier = modifier
-            .height(165.dp)
-            .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(12.dp)),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF13131A)),
-        shape = RoundedCornerShape(12.dp)
+            .height(180.dp)
+            .drawBehind {
+                drawRoundRect(
+                    color = Color.Black,
+                    topLeft = Offset(6f, 6f),
+                    size = size,
+                    cornerRadius = CornerRadius(12.dp.toPx(), 12.dp.toPx())
+                )
+            }
+            .background(Color.White, RoundedCornerShape(12.dp))
+            .border(2.5.dp, Color.Black, RoundedCornerShape(12.dp))
+            .padding(12.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp)
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = title,
-                tint = accentColor,
-                modifier = Modifier.size(28.dp)
-            )
+        Column(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .background(accentColor, RoundedCornerShape(6.dp))
+                    .border(1.5.dp, Color.Black, RoundedCornerShape(6.dp))
+                    .padding(4.dp)
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = title,
+                    tint = Color.Black,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = title,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp
+                color = Color.Black,
+                fontWeight = FontWeight.Black,
+                fontFamily = FontFamily.Cursive,
+                fontSize = 15.sp
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = desc,
-                color = Color.LightGray,
-                fontSize = 10.5.sp,
+                color = Color(0xFF444444),
+                fontSize = 11.sp,
                 lineHeight = 14.sp
             )
         }
@@ -252,20 +284,28 @@ fun PillarCard(
 fun PrdSectionHeader(title: String, icon: ImageVector) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(vertical = 8.dp)
+        modifier = Modifier.padding(vertical = 12.dp)
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = Color(0xFF6A11CB),
-            modifier = Modifier.size(20.dp)
-        )
+        Box(
+            modifier = Modifier
+                .background(Color(0xFFFFCC00), RoundedCornerShape(6.dp))
+                .border(1.5.dp, Color.Black, RoundedCornerShape(6.dp))
+                .padding(4.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = Color.Black,
+                modifier = Modifier.size(16.dp)
+            )
+        }
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = title,
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-            fontSize = 16.sp
+            color = Color.Black,
+            fontWeight = FontWeight.Black,
+            fontFamily = FontFamily.Cursive,
+            fontSize = 18.sp
         )
     }
 }
@@ -274,9 +314,9 @@ fun PrdSectionHeader(title: String, icon: ImageVector) {
 fun PrdBodyText(text: String) {
     Text(
         text = text,
-        color = Color.LightGray,
+        color = Color(0xFF222222),
         fontSize = 13.sp,
-        lineHeight = 20.sp,
+        lineHeight = 19.sp,
         textAlign = TextAlign.Justify,
         modifier = Modifier.padding(bottom = 12.dp, start = 4.dp)
     )

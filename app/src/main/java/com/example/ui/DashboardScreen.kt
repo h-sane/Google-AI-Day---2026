@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -20,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -50,19 +52,19 @@ fun DashboardScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF09090D))
+            .background(Color.Transparent)
             .testTag("dashboard_screen_root")
     ) {
-        // App Main Interactive Header Logo
+        // App Main Interactive Bubbly Header Logo
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .drawBehind {
-                    // Draw clean top diagonal ambient gradient rays
-                    drawCircle(Color(0xFF6A11CB).copy(alpha = 0.08f), radius = 320f, center = Offset(0f, 0f))
-                    drawCircle(Color(0xFF2575FC).copy(alpha = 0.08f), radius = 400f, center = Offset(size.width, 100f))
+                    // Cute pastel background bubble accents
+                    drawCircle(Color(0xFFFFEA79).copy(alpha = 0.3f), radius = 220f, center = Offset(50f, 50f))
+                    drawCircle(Color(0xFFFF8DA1).copy(alpha = 0.2f), radius = 350f, center = Offset(size.width - 50f, size.height - 20f))
                 }
-                .padding(top = 24.dp, bottom = 12.dp, start = 16.dp, end = 16.dp)
+                .padding(top = 20.dp, bottom = 8.dp, start = 16.dp, end = 16.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -73,57 +75,71 @@ fun DashboardScreen(
                     Icon(
                         imageVector = Icons.Default.Star,
                         contentDescription = "ManhwaAI Logo",
-                        tint = Color(0xFF2575FC),
+                        tint = Color(0xFFFFCC00),
                         modifier = Modifier
-                            .size(34.dp)
-                            .padding(end = 6.dp)
+                            .size(38.dp)
+                            .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
+                            .background(Color.Black, RoundedCornerShape(12.dp))
+                            .padding(4.dp)
                     )
+                    Spacer(modifier = Modifier.width(10.dp))
                     Column {
                         Text(
-                            text = "MANHWAAI",
-                            color = Color.White,
-                            fontSize = 20.sp,
+                            text = "Manhwa AI ⚡",
+                            color = Color.Black,
+                            fontSize = 24.sp,
                             fontWeight = FontWeight.Black,
-                            letterSpacing = 2.sp
+                            fontFamily = FontFamily.Cursive,
+                            letterSpacing = 0.5.sp
                         )
                         Text(
-                            text = "MULTIMEDIA CINEMATIC SCROLLER",
-                            color = Color.LightGray.copy(alpha = 0.6f),
-                            fontSize = 8.5.sp,
-                            fontFamily = FontFamily.Monospace,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.sp
+                            text = "Bouncy Soundscape Comic System",
+                            color = Color.DarkGray,
+                            fontSize = 9.sp,
+                            fontFamily = FontFamily.SansSerif,
+                            fontWeight = FontWeight.ExtraBold,
+                            letterSpacing = 0.5.sp
                         )
                     }
                 }
 
-                // Header Info Chip
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0x332575FC)),
-                    shape = RoundedCornerShape(20.dp)
+                // Header Info Chip - Styled as Speech Bubble
+                Box(
+                    modifier = Modifier
+                        .background(Color(0xFF00E5FF), RoundedCornerShape(12.dp))
+                        .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
+                        .padding(horizontal = 10.dp, vertical = 5.dp)
                 ) {
                     Text(
-                        text = "v1.0 ACTIVE",
-                        color = Color(0xFF2575FC),
+                        text = "ONLINE ★",
+                        color = Color.Black,
                         fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.Monospace,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                        fontWeight = FontWeight.Black,
+                        fontFamily = FontFamily.Monospace
                     )
                 }
             }
         }
 
-        // Modern Tab Selectors: LIBRARY, PRD & ARCHITECTURE
+        // Playful Tab Selectors: LIBRARY, PRD & ARCHITECTURE
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 6.dp)
-                .background(Color(0xFF13131A), RoundedCornerShape(10.dp))
+                .drawBehind {
+                    drawRoundRect(
+                        color = Color.Black,
+                        topLeft = Offset(6f, 6f),
+                        size = size,
+                        cornerRadius = CornerRadius(16.dp.toPx(), 16.dp.toPx())
+                    )
+                }
+                .background(Color.White, RoundedCornerShape(16.dp))
+                .border(3.dp, Color.Black, RoundedCornerShape(16.dp))
                 .padding(4.dp)
         ) {
             TabButton(
-                title = "Library Shelf",
+                title = "My Comic Library",
                 icon = Icons.Default.Star,
                 isActive = activeTab == "LIBRARY",
                 modifier = Modifier.weight(1f),
@@ -138,7 +154,7 @@ fun DashboardScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         // Tab Content Display with Transition
         Crossfade(
@@ -165,7 +181,7 @@ fun DashboardScreen(
                                 ) {
                                     QuickStatChip(
                                         title = "Manhwa Universes",
-                                        value = manhwas.size.toString(),
+                                        value = "${manhwas.size} Stories",
                                         modifier = Modifier.weight(1.3f)
                                     )
                                     QuickStatChip(
@@ -181,7 +197,7 @@ fun DashboardScreen(
                                 LazyVerticalGrid(
                                     columns = GridCells.Fixed(1),
                                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 90.dp),
-                                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                                    verticalArrangement = Arrangement.spacedBy(16.dp),
                                     modifier = Modifier.fillMaxSize()
                                 ) {
                                     items(manhwas) { item ->
@@ -196,23 +212,36 @@ fun DashboardScreen(
                         }
 
                         // Floating action button (FAB) to upload/design comic universes
-                        FloatingActionButton(
-                            onClick = { showUploadModal = true },
-                            containerColor = Color(0xFF2575FC),
-                            contentColor = Color.White,
-                            shape = RoundedCornerShape(16.dp),
+                        Box(
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
                                 .padding(16.dp)
+                                .drawBehind {
+                                    drawRoundRect(
+                                        color = Color.Black,
+                                        topLeft = Offset(8f, 8f),
+                                        size = size,
+                                        cornerRadius = CornerRadius(24.dp.toPx(), 24.dp.toPx())
+                                    )
+                                }
+                                .background(Color(0xFFFF3366), RoundedCornerShape(24.dp))
+                                .border(3.dp, Color.Black, RoundedCornerShape(24.dp))
+                                .clickable { showUploadModal = true }
+                                .padding(horizontal = 20.dp, vertical = 12.dp)
                                 .testTag("upload_fab")
                         ) {
                             Row(
-                                modifier = Modifier.padding(horizontal = 16.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(imageVector = Icons.Default.Add, contentDescription = null)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("Upload Manhwa", fontWeight = FontWeight.Bold)
+                                Icon(imageVector = Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "Draw Comic Saga!",
+                                    color = Color.White,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Black,
+                                    fontFamily = FontFamily.Cursive
+                                )
                             }
                         }
                     }
@@ -426,8 +455,13 @@ fun TabButton(
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(if (isActive) Color(0xFF2575FC) else Color.Transparent)
+            .clip(RoundedCornerShape(12.dp))
+            .background(if (isActive) Color(0xFFFFE57F) else Color.Transparent) // Bright bubbly yellow highlight!
+            .border(
+                width = if (isActive) 2.dp else 0.dp,
+                color = if (isActive) Color.Black else Color.Transparent,
+                shape = RoundedCornerShape(12.dp)
+            )
             .clickable(onClick = onClick)
             .padding(vertical = 10.dp),
         contentAlignment = Alignment.Center
@@ -439,13 +473,14 @@ fun TabButton(
             Icon(
                 imageVector = icon as ImageVector,
                 contentDescription = null,
-                tint = if (isActive) Color.White else Color.Gray,
+                tint = Color.Black,
                 modifier = Modifier.size(16.dp)
             )
             Text(
                 text = title,
-                color = if (isActive) Color.White else Color.Gray,
-                fontSize = 12.sp,
+                color = Color.Black,
+                fontSize = 13.sp,
+                fontFamily = FontFamily.Cursive,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -458,15 +493,37 @@ fun QuickStatChip(
     value: String,
     modifier: Modifier = Modifier
 ) {
-    Card(
-        modifier = modifier.border(1.dp, Color.White.copy(alpha = 0.05f), RoundedCornerShape(10.dp)),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF13131A)),
-        shape = RoundedCornerShape(10.dp)
+    val randomBg = if (title.contains("Universe", ignoreCase = true)) Color(0xFFD1F2FF) else Color(0xFFFFDFEA)
+    Box(
+        modifier = modifier
+            .drawBehind {
+                drawRoundRect(
+                    color = Color.Black,
+                    topLeft = Offset(6f, 6f),
+                    size = size,
+                    cornerRadius = CornerRadius(12.dp.toPx(), 12.dp.toPx())
+                )
+            }
+            .background(randomBg, RoundedCornerShape(12.dp))
+            .border(2.5.dp, Color.Black, RoundedCornerShape(12.dp))
+            .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
-        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-            Text(text = title.uppercase(), fontSize = 9.sp, color = Color.Gray, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+        Column {
+            Text(
+                text = title.uppercase(),
+                fontSize = 8.5.sp,
+                color = Color.Black.copy(alpha = 0.8f),
+                fontWeight = FontWeight.ExtraBold,
+                fontFamily = FontFamily.SansSerif
+            )
             Spacer(modifier = Modifier.height(2.dp))
-            Text(text = value, fontSize = 14.sp, color = Color.White, fontWeight = FontWeight.Black)
+            Text(
+                text = value,
+                fontSize = 13.sp,
+                color = Color.Black,
+                fontWeight = FontWeight.Black,
+                fontFamily = FontFamily.Cursive
+            )
         }
     }
 }
@@ -480,32 +537,50 @@ fun EmptyLibraryView(onSeedDefault: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Icon(
-            imageVector = Icons.Default.Star,
-            contentDescription = null,
-            tint = Color.Gray.copy(alpha = 0.4f),
-            modifier = Modifier.size(72.dp)
-        )
+        Box(
+            modifier = Modifier
+                .background(Color(0xFFFFEA79), CircleShape)
+                .border(2.5.dp, Color.Black, CircleShape)
+                .padding(16.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Star,
+                contentDescription = null,
+                tint = Color.Black,
+                modifier = Modifier.size(54.dp)
+            )
+        }
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "Your AI Shelf is Empty",
-            color = Color.White,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold
+            text = "Your Bouncy Comic Shelf is Empty!",
+            color = Color.Black,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Black,
+            fontFamily = FontFamily.Cursive
         )
         Text(
-            text = "Preloading triggers takes a moment, or click below to launch your distinct fantasy outlining canvas.",
-            color = Color.Gray,
-            fontSize = 12.sp,
+            text = "Preloading takes a moment, or click below to launch your distinct fantasy outlining canvas! Spark dialogs, synthesize tunes!",
+            color = Color.DarkGray,
+            fontSize = 13.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 24.dp)
         )
         Button(
             onClick = onSeedDefault,
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2575FC)),
-            shape = RoundedCornerShape(10.dp)
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF3366)),
+            shape = RoundedCornerShape(16.dp),
+            border = BorderStroke(2.5.dp, Color.Black),
+            modifier = Modifier
+                .drawBehind {
+                    drawRoundRect(
+                        color = Color.Black,
+                        topLeft = Offset(4f, 4f),
+                        size = size,
+                        cornerRadius = CornerRadius(16.dp.toPx(), 16.dp.toPx())
+                    )
+                }
         ) {
-            Text("Create First Manhwa Story", color = Color.White)
+            Text("Create First Epic Comic! ✎", color = Color.White, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Cursive, fontSize = 16.sp)
         }
     }
 }
@@ -517,35 +592,37 @@ fun ManhwaCard(
     onDelete: () -> Unit
 ) {
     val accentColor = when (manhwa.genre.uppercase()) {
-        "ACTION" -> Color(0xFFFF5722)
-        "HORROR" -> Color(0xFF4CAF50)
-        "ROMANCE" -> Color(0xFFE91E63)
-        else -> Color(0xFF2196F3)
+        "ACTION" -> Color(0xFFFF5252) // Neon Red
+        "HORROR" -> Color(0xFF69F0AE) // Neon Green
+        "ROMANCE" -> Color(0xFFFF4081) // Neon Pink
+        else -> Color(0xFF40C4FF) // Neon Cyan
     }
 
-    Card(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, Color.White.copy(alpha = 0.05f), RoundedCornerShape(12.dp)),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF13131A)),
-        shape = RoundedCornerShape(12.dp)
+            .drawBehind {
+                drawRoundRect(
+                    color = Color.Black,
+                    topLeft = Offset(10f, 10f),
+                    size = size,
+                    cornerRadius = CornerRadius(16.dp.toPx(), 16.dp.toPx())
+                )
+            }
+            .background(Color.White, RoundedCornerShape(16.dp))
+            .border(3.dp, Color.Black, RoundedCornerShape(16.dp))
+            .padding(16.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // High fidelity procedurally generated cover thumbnail
+            // High fidelity cover thumbnail with thick black outline
             Box(
                 modifier = Modifier
                     .size(80.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(accentColor.copy(alpha = 0.8f), accentColor.copy(alpha = 0.2f))
-                        )
-                    ),
+                    .background(accentColor, RoundedCornerShape(12.dp))
+                    .border(2.5.dp, Color.Black, RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -556,7 +633,7 @@ fun ManhwaCard(
                         else -> Icons.Default.Info
                     },
                     contentDescription = null,
-                    tint = Color.White,
+                    tint = Color.Black,
                     modifier = Modifier.size(34.dp)
                 )
             }
@@ -568,41 +645,41 @@ fun ManhwaCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = accentColor.copy(alpha = 0.15f)),
-                        shape = RoundedCornerShape(6.dp)
+                    Box(
+                        modifier = Modifier
+                            .background(accentColor, RoundedCornerShape(6.dp))
+                            .border(1.5.dp, Color.Black, RoundedCornerShape(6.dp))
+                            .padding(horizontal = 8.dp, vertical = 2.dp)
                     ) {
                         Text(
                             text = manhwa.genre.uppercase(),
-                            color = accentColor,
+                            color = Color.Black,
                             fontSize = 8.5.sp,
                             fontWeight = FontWeight.Bold,
-                            fontFamily = FontFamily.Monospace,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            fontFamily = FontFamily.Monospace
                         )
                     }
 
                     if (manhwa.isProcessed) {
-                        Card(
-                            colors = CardDefaults.cardColors(containerColor = Color(0x332E7D32)),
-                            shape = RoundedCornerShape(6.dp)
+                        Box(
+                            modifier = Modifier
+                                .background(Color(0xFFCCFF90), RoundedCornerShape(6.dp))
+                                .border(1.5.dp, Color.Black, RoundedCornerShape(6.dp))
+                                .padding(horizontal = 8.dp, vertical = 2.dp)
                         ) {
                             Row(
-                                modifier = Modifier
-                                    .padding(horizontal = 6.dp, vertical = 2.dp)
-                                    .fillMaxHeight(),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(2.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Star,
                                     contentDescription = null,
-                                    tint = Color(0xFF4CAF50),
-                                    modifier = Modifier.size(8.dp)
+                                    tint = Color.Black,
+                                    modifier = Modifier.size(10.dp)
                                 )
                                 Text(
-                                    text = "AI SYNCED",
-                                    color = Color(0xFF4CAF50),
+                                    text = "AI ACTIVE",
+                                    color = Color.Black,
                                     fontSize = 8.sp,
                                     fontWeight = FontWeight.Bold,
                                     fontFamily = FontFamily.Monospace
@@ -612,24 +689,26 @@ fun ManhwaCard(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
                     text = manhwa.title,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
+                    color = Color.Black,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 18.sp,
+                    fontFamily = FontFamily.Cursive,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
 
                 Text(
-                    text = "Universe Seed: #${manhwa.imageSeed.toString().takeLast(5)} • ${manhwa.author}",
-                    color = Color.Gray,
-                    fontSize = 10.5.sp
+                    text = "Seed: #${manhwa.imageSeed.toString().takeLast(5)} • By ${manhwa.author}",
+                    color = Color.DarkGray,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -638,19 +717,20 @@ fun ManhwaCard(
                 ) {
                     Button(
                         onClick = onRead,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2575FC)),
-                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD54F)), // Yellow action button
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(2.dp, Color.Black),
                         modifier = Modifier
                             .weight(1f)
-                            .height(34.dp)
+                            .height(38.dp)
                             .testTag("read_button_${manhwa.title}")
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Icon(imageVector = Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(12.dp))
-                            Text("STREAM LIVE", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+                            Icon(imageVector = Icons.Default.PlayArrow, contentDescription = null, tint = Color.Black, modifier = Modifier.size(16.dp))
+                            Text("STREAM COMIC ⚡", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Cursive)
                         }
                     }
 
@@ -658,14 +738,15 @@ fun ManhwaCard(
                     IconButton(
                         onClick = onDelete,
                         modifier = Modifier
-                            .size(34.dp)
-                            .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(8.dp))
+                            .size(38.dp)
+                            .background(Color(0xFFFF8A80), RoundedCornerShape(12.dp))
+                            .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
                     ) {
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = "Delete universe",
-                            tint = Color.Red.copy(alpha = 0.7f),
-                            modifier = Modifier.size(16.dp)
+                            tint = Color.Black,
+                            modifier = Modifier.size(18.dp)
                         )
                     }
                 }
@@ -682,17 +763,19 @@ fun GenreChip(
 ) {
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(if (isSelected) Color(0xFF2575FC) else Color.White.copy(alpha = 0.05f))
+            .clip(RoundedCornerShape(12.dp))
+            .background(if (isSelected) Color(0xFFFF8DA1) else Color.White)
+            .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 6.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = name,
-            color = if (isSelected) Color.White else Color.Gray,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Bold
+            color = Color.Black,
+            fontSize = 12.sp,
+            fontFamily = FontFamily.Cursive,
+            fontWeight = FontWeight.Black
         )
     }
 }
