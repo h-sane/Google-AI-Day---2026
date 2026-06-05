@@ -122,22 +122,69 @@ class ManhwaRepository(private val database: AppDatabase) {
     /**
      * Executes the actual Gemini AI pipeline to process and ingest an uploaded Manhwa record.
      */
-    suspend fun processUploadedManhwa(title: String, prompt: String, suggestedGenre: String) = withContext(Dispatchers.IO) {
+    suspend fun processUploadedManhwa(
+        title: String, 
+        prompt: String, 
+        suggestedGenre: String, 
+        author: String = "AI Creator",
+        imagePaths: List<String>? = null
+    ) = withContext(Dispatchers.IO) {
+        val numPanels = imagePaths?.size ?: 6
         // Core step: Analyze narrative with Gemini API/Backup Fallback
-        val result = GeminiClient.analyzeManhwa(title, prompt, suggestedGenre)
+        val result = GeminiClient.analyzeManhwa(title, prompt, suggestedGenre, numPanels)
         
         // Write the resulting structure safely into Room Db
         val seed = (System.currentTimeMillis() % 1000000)
         val manhwa = ManhwaEntity(
             title = result.title,
-            author = "AI Creator Pipeline",
+            author = author,
             genre = result.genre,
             description = result.description,
-            coverUrl = "",
+            coverUrl = imagePaths?.firstOrNull() ?: "",
             isProcessed = true,
             imageSeed = seed
         )
-        seedManhwaWithSample(manhwa, result)
+        
+        val manhwaId = database.manhwaDao().insertManhwa(manhwa)
+        for (p in result.panels) {
+            val hSpan = 1.0f / numPanels
+            val top = p.panelIndex * hSpan
+            val bottom = top + hSpan
+
+            val panelDb = PanelEntity(
+                manhwaId = manhwaId,
+                panelIndex = p.panelIndex,
+                description = p.description,
+                mood = p.mood,
+                topOffsetPercent = top,
+                bottomOffsetPercent = bottom,
+                animationType = p.animationType,
+                imagePath = imagePaths?.getOrNull(p.panelIndex)
+            )
+            val panelId = database.panelDao().insertPanel(panelDb)
+
+            // Insert Onomatopoeias
+            val onomatos = p.onomatopoeias.map {
+                OnomatopoeiaEntity(
+                    panelId = panelId,
+                    text = it.text,
+                    xPercent = it.xPercent,
+                    yPercent = it.yPercent,
+                    sfxType = it.sfxType
+                )
+            }
+            database.onomatopoeiaDao().insertOnomatopoeias(onomatos)
+
+            // Insert Visual Fxs
+            val fxs = p.visualFxs.map {
+                VisualFxEntity(
+                    panelId = panelId,
+                    fxType = it.fxType,
+                    intensity = it.intensity
+                )
+            }
+            database.visualFxDao().insertVisualFxs(fxs)
+        }
     }
 
     /**

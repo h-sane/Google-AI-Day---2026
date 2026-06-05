@@ -37,7 +37,8 @@ data class PanelEntity(
     val mood: String, // ACTION, HORROR, ROMANCE, MYSTERY
     val topOffsetPercent: Float,     // Segment trigger boundaries from 0.0 to n.0
     val bottomOffsetPercent: Float,
-    val animationType: String = "NONE" // SHAKE, PULSE, ZOOM_IN, SLIDE_IN_LEFT, NONE
+    val animationType: String = "NONE", // SHAKE, PULSE, ZOOM_IN, SLIDE_IN_LEFT, NONE
+    val imagePath: String? = null
 )
 
 @Entity(

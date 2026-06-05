@@ -54,6 +54,7 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                 ) { innerPadding ->
+                    val userSession by viewModelByLazy.userSession.collectAsState()
                     val manhwas by viewModelByLazy.allManhwas.collectAsState()
                     val readingState by viewModelByLazy.readingManhwaState.collectAsState()
                     val progress by viewModelByLazy.pipelineProgress.collectAsState()
@@ -65,45 +66,56 @@ class MainActivity : ComponentActivity() {
                             .fillMaxSize()
                             .padding(innerPadding)
                     ) {
-                        when (val state = readingState) {
-                            is UiState.Success -> {
-                                WebtoonReaderScreen(
-                                    readingManhwa = state.data,
-                                    onBack = { viewModelByLazy.closeReadingSession() }
-                                )
-                            }
-                            is UiState.Loading -> {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .background(Color(0xFFFFFDF0)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    CircularProgressIndicator(color = Color(0xFFFF4081))
+                        val activeSession = userSession
+                        if (activeSession == null) {
+                            com.example.ui.LoginScreen(
+                                onLoginSuccess = { username, role ->
+                                    viewModelByLazy.login(username, role)
                                 }
-                            }
-                            is UiState.Error -> {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .background(Color(0xFFFFFDF0)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(text = "Error: ${state.message}", color = Color(0xFFFF1744), modifier = Modifier.padding(16.dp))
+                            )
+                        } else {
+                            when (val state = readingState) {
+                                is UiState.Success -> {
+                                    WebtoonReaderScreen(
+                                        readingManhwa = state.data,
+                                        onBack = { viewModelByLazy.closeReadingSession() }
+                                    )
                                 }
-                            }
-                            else -> {
-                                DashboardScreen(
-                                    manhwas = manhwas,
-                                    isPipelineAnalyzing = isAnalyzing,
-                                    pipelineProgress = progress,
-                                    pipelineProgressText = progressText,
-                                    onReadManhwa = { id -> viewModelByLazy.loadReadingManhwa(id) },
-                                    onUploadManhwa = { title, desc, genre ->
-                                        viewModelByLazy.uploadAndProcessManhwa(title, desc, genre) {}
-                                    },
-                                    onDeleteManhwa = { id -> viewModelByLazy.deleteManhwa(id) }
-                                )
+                                is UiState.Loading -> {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(Color(0xFFFFFDF0)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CircularProgressIndicator(color = Color(0xFFFF4081))
+                                    }
+                                }
+                                is UiState.Error -> {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(Color(0xFFFFFDF0)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(text = "Error: ${state.message}", color = Color(0xFFFF1744), modifier = Modifier.padding(16.dp))
+                                    }
+                                }
+                                else -> {
+                                    DashboardScreen(
+                                        manhwas = manhwas,
+                                        isPipelineAnalyzing = isAnalyzing,
+                                        pipelineProgress = progress,
+                                        pipelineProgressText = progressText,
+                                        onReadManhwa = { id -> viewModelByLazy.loadReadingManhwa(id) },
+                                        onUploadManhwa = { title, desc, genre, zipUri, imageUris ->
+                                            viewModelByLazy.uploadAndProcessManhwa(title, desc, genre, zipUri, imageUris) {}
+                                        },
+                                        onDeleteManhwa = { id -> viewModelByLazy.deleteManhwa(id) },
+                                        userSession = activeSession,
+                                        onLogout = { viewModelByLazy.logout() }
+                                    )
+                                }
                             }
                         }
                     }

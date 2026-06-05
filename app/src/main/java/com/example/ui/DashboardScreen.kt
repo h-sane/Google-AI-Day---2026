@@ -26,6 +26,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalContext
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -42,12 +46,16 @@ fun DashboardScreen(
     pipelineProgress: Float,
     pipelineProgressText: String,
     onReadManhwa: (Long) -> Unit,
-    onUploadManhwa: (String, String, String) -> Unit,
+    onUploadManhwa: (String, String, String, Uri?, List<Uri>?) -> Unit,
     onDeleteManhwa: (Long) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    userSession: UserSession? = null,
+    onLogout: () -> Unit = {}
 ) {
     var activeTab by remember { mutableStateOf("LIBRARY") } // LIBRARY, PRD
     var showUploadModal by remember { mutableStateOf(false) }
+    var favoritedIds by remember { mutableStateOf(setOf<Long>()) }
+    var showOnlyFavorites by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -103,19 +111,34 @@ fun DashboardScreen(
                     }
                 }
 
-                // Header Info Chip - Styled as Speech Bubble
-                Box(
-                    modifier = Modifier
-                        .background(Color(0xFF00E5FF), RoundedCornerShape(12.dp))
-                        .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
-                        .padding(horizontal = 10.dp, vertical = 5.dp)
-                ) {
+                // Header Info Chip - Styled as Speech Bubble with Logout
+                Column(horizontalAlignment = Alignment.End) {
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                if (userSession?.role == "CREATOR") Color(0xFFFFB300) else Color(0xFF00E5FF),
+                                RoundedCornerShape(12.dp)
+                            )
+                            .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
+                            .clickable { onLogout() }
+                            .padding(horizontal = 10.dp, vertical = 5.dp)
+                            .testTag("logout_button")
+                    ) {
+                        Text(
+                            text = "${userSession?.username ?: "Guest"} ★ LOGOUT",
+                            color = Color.Black,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Black,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
                     Text(
-                        text = "ONLINE ★",
+                        text = "Role: ${userSession?.role ?: "READER"}",
                         color = Color.Black,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Black,
-                        fontFamily = FontFamily.Monospace
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace,
+                        modifier = Modifier.padding(top = 2.dp, end = 4.dp)
                     )
                 }
             }
@@ -169,67 +192,169 @@ fun DashboardScreen(
                     // Library Shelf Dashboard
                     Box(modifier = Modifier.fillMaxSize()) {
                         if (manhwas.isEmpty() && !isPipelineAnalyzing) {
-                            EmptyLibraryView(onSeedDefault = { showUploadModal = true })
+                            EmptyLibraryView(onSeedDefault = { 
+                                if (userSession?.role == "CREATOR") {
+                                    showUploadModal = true 
+                                } else {
+                                    // Readers can't upload, let's just trigger a seed through a dummy upload or prompt
+                                    onUploadManhwa("Default Action Saga", "Seeded adventure story with epic chords", "ACTION", null, null)
+                                }
+                            })
                         } else {
                             Column(modifier = Modifier.fillMaxSize()) {
+                                // Warm Comic Greeting Bubble
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 6.dp)
+                                        .drawBehind {
+                                            drawRoundRect(
+                                                color = Color.Black,
+                                                topLeft = Offset(4f, 4f),
+                                                size = size,
+                                                cornerRadius = CornerRadius(12.dp.toPx(), 12.dp.toPx())
+                                            )
+                                        }
+                                        .background(Color(0xFFFFFDE7), RoundedCornerShape(12.dp))
+                                        .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
+                                        .padding(12.dp)
+                                ) {
+                                    Text(
+                                        text = if (userSession?.role == "CREATOR") {
+                                            "🎨 CREATOR STUDIO: Welcome, Master ${userSession.username}! Draw and upload your manhwa saga with dynamic visual triggers below."
+                                        } else {
+                                            "📖 READER CORNER: Greeting, Enthusiast ${userSession?.username}! Enjoy immersive audio tracks synced in real-time as you scroll."
+                                        },
+                                        color = Color.Black,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        fontFamily = FontFamily.Monospace,
+                                        lineHeight = 15.sp
+                                    )
+                                }
+
                                 // Shelf Analytics Summary Bar
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 16.dp, vertical = 4.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     QuickStatChip(
                                         title = "Manhwa Universes",
                                         value = "${manhwas.size} Stories",
-                                        modifier = Modifier.weight(1.3f)
+                                        modifier = Modifier.weight(1f)
                                     )
                                     QuickStatChip(
                                         title = "Live SFX Pipelines",
                                         value = manhwas.filter { it.isProcessed }.size.toString() + " ACTIVE",
-                                        modifier = Modifier.weight(1.7f)
+                                        modifier = Modifier.weight(1f)
                                     )
+                                    
+                                    // Search/Favorites Filter chip for Readers
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .drawBehind {
+                                                drawRoundRect(
+                                                    color = Color.Black,
+                                                    topLeft = Offset(3f, 3f),
+                                                    size = size,
+                                                    cornerRadius = CornerRadius(10.dp.toPx(), 10.dp.toPx())
+                                                )
+                                            }
+                                            .background(
+                                                if (showOnlyFavorites) Color(0xFFFF8DA1) else Color.White,
+                                                RoundedCornerShape(10.dp)
+                                            )
+                                            .border(1.5.dp, Color.Black, RoundedCornerShape(10.dp))
+                                            .clickable { showOnlyFavorites = !showOnlyFavorites }
+                                            .padding(horizontal = 8.dp, vertical = 6.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = if (showOnlyFavorites) "★ FAVS ONLY" else "★ SHOW ALL",
+                                            color = Color.Black,
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            fontFamily = FontFamily.Monospace
+                                        )
+                                    }
                                 }
 
                                 Spacer(modifier = Modifier.height(8.dp))
 
                                 // Grid view of manhwas
-                                LazyVerticalGrid(
-                                    columns = GridCells.Fixed(1),
-                                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 90.dp),
-                                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-                                    items(manhwas) { item ->
-                                        ManhwaCard(
-                                            manhwa = item,
-                                            onRead = { onReadManhwa(item.id) },
-                                            onDelete = { onDeleteManhwa(item.id) }
+                                val displayedManhwas = if (showOnlyFavorites) {
+                                    manhwas.filter { favoritedIds.contains(it.id) }
+                                } else {
+                                    manhwas
+                                }
+
+                                if (displayedManhwas.isEmpty() && showOnlyFavorites) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(32.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "No favorited manhwas yet! Go tap some heart buttons on the comics below! ❤",
+                                            color = Color.DarkGray,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            textAlign = TextAlign.Center
                                         )
+                                    }
+                                } else {
+                                    LazyVerticalGrid(
+                                        columns = GridCells.Fixed(1),
+                                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 90.dp),
+                                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                                        modifier = Modifier.fillMaxSize()
+                                    ) {
+                                        items(displayedManhwas) { item ->
+                                            ManhwaCard(
+                                                manhwa = item,
+                                                onRead = { onReadManhwa(item.id) },
+                                                onDelete = { onDeleteManhwa(item.id) },
+                                                isCreator = userSession?.role == "CREATOR",
+                                                isFavorited = favoritedIds.contains(item.id),
+                                                onToggleFavorite = {
+                                                    favoritedIds = if (favoritedIds.contains(item.id)) {
+                                                        favoritedIds - item.id
+                                                    } else {
+                                                        favoritedIds + item.id
+                                                    }
+                                                }
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
 
-                        // Floating action button (FAB) to upload/design comic universes
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .padding(16.dp)
-                                .drawBehind {
-                                    drawRoundRect(
-                                        color = Color.Black,
-                                        topLeft = Offset(8f, 8f),
-                                        size = size,
-                                        cornerRadius = CornerRadius(24.dp.toPx(), 24.dp.toPx())
-                                    )
-                                }
-                                .background(Color(0xFFFF3366), RoundedCornerShape(24.dp))
-                                .border(3.dp, Color.Black, RoundedCornerShape(24.dp))
-                                .clickable { showUploadModal = true }
-                                .padding(horizontal = 20.dp, vertical = 12.dp)
-                                .testTag("upload_fab")
-                        ) {
+                        // Floating action button (FAB) to upload/design comic universes (Only visible to Creators!)
+                        if (userSession?.role == "CREATOR") {
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .padding(16.dp)
+                                    .drawBehind {
+                                        drawRoundRect(
+                                            color = Color.Black,
+                                            topLeft = Offset(8f, 8f),
+                                            size = size,
+                                            cornerRadius = CornerRadius(24.dp.toPx(), 24.dp.toPx())
+                                        )
+                                    }
+                                    .background(Color(0xFFFF3366), RoundedCornerShape(24.dp))
+                                    .border(3.dp, Color.Black, RoundedCornerShape(24.dp))
+                                    .clickable { showUploadModal = true }
+                                    .padding(horizontal = 20.dp, vertical = 12.dp)
+                                    .testTag("upload_fab")
+                            ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -248,6 +373,7 @@ fun DashboardScreen(
                 }
             }
         }
+    }
 
         // Real-Time Pipeline Progress Overlay Panel (Simulates or Runs actual Gemini analysis)
         AnimatedVisibility(
@@ -349,6 +475,27 @@ fun DashboardScreen(
             var inputTitle by remember { mutableStateOf("") }
             var inputNarrativePrompt by remember { mutableStateOf("") }
             var selectedGenre by remember { mutableStateOf("ACTION") } // ACTION, HORROR, ROMANCE, MYSTERY
+            var selectedZipUri by remember { mutableStateOf<Uri?>(null) }
+            var selectedImageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
+            val context = LocalContext.current
+
+            val zipPickerLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.GetContent()
+            ) { uri: Uri? ->
+                if (uri != null) {
+                    selectedZipUri = uri
+                    selectedImageUris = emptyList()
+                }
+            }
+
+            val imagePickerLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.GetMultipleContents()
+            ) { uris: List<Uri> ->
+                if (uris.isNotEmpty()) {
+                    selectedImageUris = uris
+                    selectedZipUri = null
+                }
+            }
 
             AlertDialog(
                 onDismissRequest = { showUploadModal = false },
@@ -366,7 +513,7 @@ fun DashboardScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text(
-                            text = "Enter raw comic outlines or descriptions. The Gemini AI Pipeline will automatically generate custom 6-panel scene orchestrations, onomatopoeias, dynamic overlays, and procedural PCM soundtracks.",
+                            text = "Enter raw comic outlines or descriptions. The Gemini AI Pipeline will automatically generate custom scene orchestrations, page-mapped onomatopoeias, dynamic overlays, and procedural soundtracks.",
                             color = Color.LightGray,
                             fontSize = 11.sp,
                             lineHeight = 15.sp
@@ -417,6 +564,99 @@ fun DashboardScreen(
                             GenreChip(name = "Romance", isSelected = selectedGenre == "ROMANCE", onClick = { selectedGenre = "ROMANCE" })
                             GenreChip(name = "Mystery", isSelected = selectedGenre == "MYSTERY", onClick = { selectedGenre = "MYSTERY" })
                         }
+
+                        HorizontalDivider(
+                            color = Color.White.copy(alpha = 0.15f),
+                            thickness = 1.dp,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        )
+
+                        Text("Optional: Upload Actual Manhwa Pages", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        Text("Include a sequential ZIP archive or multi-select individual page images to render real manhwa screens.", color = Color.Gray, fontSize = 10.sp, lineHeight = 13.sp)
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Button(
+                                onClick = { zipPickerLauncher.launch("application/zip") },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (selectedZipUri != null) Color(0xFF2E7D32) else Color(0xFF2575FC).copy(alpha = 0.15f)
+                                ),
+                                border = BorderStroke(1.dp, if (selectedZipUri != null) Color(0xFF81C784) else Color(0xFF2575FC)),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.weight(1f).testTag("zip_upload_button")
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = if (selectedZipUri != null) Icons.Default.Star else Icons.Default.Info,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Text(
+                                        text = if (selectedZipUri != null) "ZIP Attached!" else "Upload ZIP",
+                                        color = Color.White,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+
+                            Button(
+                                onClick = { imagePickerLauncher.launch("image/*") },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (selectedImageUris.isNotEmpty()) Color(0xFF2E7D32) else Color(0xFF2575FC).copy(alpha = 0.15f)
+                                ),
+                                border = BorderStroke(1.dp, if (selectedImageUris.isNotEmpty()) Color(0xFF81C784) else Color(0xFF2575FC)),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.weight(1f).testTag("images_upload_button")
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = if (selectedImageUris.isNotEmpty()) Icons.Default.Star else Icons.Default.Add,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Text(
+                                        text = if (selectedImageUris.isNotEmpty()) "${selectedImageUris.size} Pages!" else "Select Pages",
+                                        color = Color.White,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
+
+                        if (selectedZipUri != null) {
+                            Text(
+                                text = "✓ Selected ZIP Archive: ${selectedZipUri?.lastPathSegment ?: "manhwa.zip"}",
+                                color = Color(0xFF81C784),
+                                fontSize = 10.sp,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        } else if (selectedImageUris.isNotEmpty()) {
+                            Text(
+                                text = "✓ Selected ${selectedImageUris.size} sorted sequential comic files.",
+                                color = Color(0xFF81C784),
+                                fontSize = 10.sp,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        } else {
+                            Text(
+                                text = "ℹ Using fully procedural dynamic vector graphics layout system.",
+                                color = Color.White.copy(alpha = 0.5f),
+                                fontSize = 10.sp,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
                     }
                 },
                 confirmButton = {
@@ -426,7 +666,9 @@ fun DashboardScreen(
                             onUploadManhwa(
                                 inputTitle.ifEmpty { "AI Generated Saga" },
                                 inputNarrativePrompt.ifEmpty { "An epic clash of elemental stars." },
-                                selectedGenre
+                                selectedGenre,
+                                selectedZipUri,
+                                selectedImageUris.ifEmpty { null }
                             )
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2575FC)),
@@ -589,7 +831,10 @@ fun EmptyLibraryView(onSeedDefault: () -> Unit) {
 fun ManhwaCard(
     manhwa: ManhwaEntity,
     onRead: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    isCreator: Boolean = true,
+    isFavorited: Boolean = false,
+    onToggleFavorite: () -> Unit = {}
 ) {
     val accentColor = when (manhwa.genre.uppercase()) {
         "ACTION" -> Color(0xFFFF5252) // Neon Red
@@ -734,20 +979,41 @@ fun ManhwaCard(
                         }
                     }
 
-                    // Delete button to purge database records
-                    IconButton(
-                        onClick = onDelete,
-                        modifier = Modifier
-                            .size(38.dp)
-                            .background(Color(0xFFFF8A80), RoundedCornerShape(12.dp))
-                            .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete universe",
-                            tint = Color.Black,
-                            modifier = Modifier.size(18.dp)
-                        )
+                    if (isCreator) {
+                        // Delete button to purge database records
+                        IconButton(
+                            onClick = onDelete,
+                            modifier = Modifier
+                                .size(38.dp)
+                                .background(Color(0xFFFF8A80), RoundedCornerShape(12.dp))
+                                .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete universe",
+                                tint = Color.Black,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    } else {
+                        // Favorite button for normal readers
+                        IconButton(
+                            onClick = onToggleFavorite,
+                            modifier = Modifier
+                                .size(38.dp)
+                                .background(
+                                    if (isFavorited) Color(0xFFFF8DA1) else Color.White,
+                                    RoundedCornerShape(12.dp)
+                                )
+                                .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Favorite,
+                                contentDescription = "Toggle favorite",
+                                tint = if (isFavorited) Color.Red else Color.LightGray,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
                     }
                 }
             }

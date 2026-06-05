@@ -51,6 +51,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.cos
 import kotlin.math.sin
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
 
 /**
  * High-fidelity Scroll-Sensitive Kinetic Webtoon Reader Screen.
@@ -618,6 +620,23 @@ fun ProceduralPanelIllustration(
     waveOffset: Float,
     velocity: Float
 ) {
+    if (panel.panel.imagePath != null) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(290.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            AsyncImage(
+                model = panel.panel.imagePath,
+                contentDescription = panel.panel.description,
+                modifier = Modifier.fillMaxSize().testTag("panel_image_${panel.panel.panelIndex}"),
+                contentScale = ContentScale.Crop
+            )
+        }
+        return
+    }
+
     val infiniteTransition = rememberInfiniteTransition(label = "IllustratorTransitions")
     val breatheValue by infiniteTransition.animateFloat(
         initialValue = -10f,

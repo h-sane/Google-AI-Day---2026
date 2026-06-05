@@ -107,11 +107,11 @@ object GeminiClient {
     /**
      * Sends the details or script prompt of a manhwa to Gemini to design the panel scroll directions, SFX triggers, and mood-music.
      */
-    suspend fun analyzeManhwa(title: String, prompt: String, suggestedGenre: String): ProcessedManhwa {
+    suspend fun analyzeManhwa(title: String, prompt: String, suggestedGenre: String, numPanels: Int = 6): ProcessedManhwa {
         val apiKey = BuildConfig.GEMINI_API_KEY
         if (apiKey.isEmpty() || apiKey == "MY_GEMINI_API_KEY" || apiKey.contains("placeholder", ignoreCase = true)) {
             Log.w(TAG, "Gemini API key is empty or placeholder! Running high-fidelity local procedural parser fallback.")
-            return generateProceduralFallback(title, prompt, suggestedGenre)
+            return generateProceduralFallback(title, prompt, suggestedGenre, numPanels)
         }
 
         val requestPrompt = """
@@ -122,7 +122,7 @@ object GeminiClient {
             User Narrative Prompt/Description:
             "$prompt"
 
-            Construct a cinematic webtoon layout divided into 6 consecutive, epic comic panels that tell a cohesive sequence or fight or dramatic event.
+            Construct a cinematic webtoon layout divided into exactly $numPanels consecutive, epic comic panels that tell a cohesive sequence or fight or dramatic event.
             The response MUST be a valid JSON object matching this schema strictly:
             {
               "title": "String (Same as input)",
@@ -130,7 +130,7 @@ object GeminiClient {
               "description": "Summarized narrative description",
               "panels": [
                 {
-                  "panelIndex": 0 to 5,
+                  "panelIndex": 0 to ${numPanels - 1},
                   "description": "Vivid graphic description of characters/scenery in the panel",
                   "mood": "ACTION | HORROR | ROMANCE | MYSTERY",
                   "animationType": "SHAKE | PULSE | ZOOM_IN | SLIDE_IN_LEFT | NONE",
@@ -259,11 +259,11 @@ object GeminiClient {
      * Highly rich physical fallback library. Generates genre-tailored scenarios
      * when there is no API key available.
      */
-    fun generateProceduralFallback(title: String, prompt: String, suggestedGenre: String): ProcessedManhwa {
+    fun generateProceduralFallback(title: String, prompt: String, suggestedGenre: String, numPanels: Int = 6): ProcessedManhwa {
         val activeGenre = if (suggestedGenre.isEmpty()) "ACTION" else suggestedGenre.uppercase()
         val defaultTitle = if (title.isEmpty()) "Chronicles of Destiny" else title
 
-        val panels = when (activeGenre) {
+        val basePanels = when (activeGenre) {
             "HORROR" -> listOf(
                 ProcessedPanel(
                     panelIndex = 0,
@@ -462,6 +462,21 @@ object GeminiClient {
                     animationType = "SHAKE",
                     onomatopoeias = listOf(ProcessedOnomatopoeia("KA-CHING!", 0.5f, 0.5f, "BOOM")),
                     visualFxs = listOf(ProcessedVisualFx("SPEED_LINES", 1.0f), ProcessedVisualFx("SPARKS", 1.0f))
+                )
+            )
+        }
+
+        val panels = mutableListOf<ProcessedPanel>()
+        for (i in 0 until numPanels) {
+            val base = basePanels[i % basePanels.size]
+            panels.add(
+                ProcessedPanel(
+                    panelIndex = i,
+                    description = base.description,
+                    mood = base.mood,
+                    animationType = base.animationType,
+                    onomatopoeias = base.onomatopoeias,
+                    visualFxs = base.visualFxs
                 )
             )
         }
